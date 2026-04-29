@@ -5,10 +5,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.practicum.moviehub.api.ErrorResponse;
 import ru.practicum.moviehub.model.Movie;
 import ru.practicum.moviehub.store.MoviesStore;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -70,6 +70,47 @@ public class MoviesApiTest {
     }
 
     @Test
+    void getMovies_whenNonEmpty_returnsCorrectArray() throws Exception {
+        Movie movie1 = store.addMovie(new Movie("Фильм 1", 1999));
+        Movie movie2 = store.addMovie(new Movie("Фильм 2", 2000));
+        Movie movie3 = store.addMovie(new Movie("Фильм 3", 2001));
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies"))
+                .GET()
+                .build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+
+        String contentTypeHeaderValue =
+                resp.headers().firstValue("Content-Type").orElse("");
+        assertEquals("application/json; charset=UTF-8", contentTypeHeaderValue,
+                "Content-Type должен содержать формат данных и кодировку");
+
+        List<Movie> movies = gson.fromJson(resp.body(), new ListOfMoviesTypeToken());
+
+        assertEquals(3, movies.size(), "Должно быть 3 фильма");
+        assertEquals(movie1, movies.get(0));
+        assertEquals(movie2, movies.get(1));
+        assertEquals(movie3, movies.get(2));
+    }
+
+    @Test
+    void postMovie_whenIncorrectContentType_returnError() throws Exception {
+        Movie normalMovie = new Movie("Кин-дза-дза!", 1986);
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies"))
+                .setHeader("Content-type", "application/xml")
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(normalMovie)))
+                .build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+        assertEquals(415, resp.statusCode(), "Неверный Content-Type должен вернуть 415");
+    }
+
+    @Test
     void postMovie_whenNormalMovie_returnOK() throws Exception {
         Movie normalMovie = new Movie("Кин-дза-дза!", 1986);
 
@@ -87,11 +128,9 @@ public class MoviesApiTest {
         assertEquals("application/json; charset=UTF-8", contentTypeHeaderValue,
                 "Content-Type должен содержать формат данных и кодировку");
 
+        normalMovie.setId(1);
         Movie respondedMovie = gson.fromJson(resp.body(), Movie.class);
-
-        assertEquals(1, respondedMovie.getId());
-        assertEquals(normalMovie.getTitle(), respondedMovie.getTitle());
-        assertEquals(normalMovie.getYear(), respondedMovie.getYear());
+        assertEquals(normalMovie, respondedMovie, "Фильмы должны быть идентичны");
     }
 
 }

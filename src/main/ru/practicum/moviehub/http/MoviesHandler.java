@@ -1,8 +1,5 @@
 package ru.practicum.moviehub.http;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import ru.practicum.moviehub.MovieValidationException;
@@ -33,6 +30,11 @@ public class MoviesHandler extends BaseHttpHandler {
     }
 
     private void handlePostNewMovie(HttpExchange ex) throws IOException {
+        if (!CT_JSON.equals(ex.getRequestHeaders().getFirst("Content-type"))) {
+            sendJson(ex, 415, gson.toJson(new ErrorResponse("Неверный тип данных", Collections.emptyList())));
+            return;
+        }
+
         try (InputStream is = ex.getRequestBody()) {
             String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
