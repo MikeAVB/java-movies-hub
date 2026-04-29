@@ -11,13 +11,13 @@ public class MovieTitleValidator implements MovieValidator {
     @Override
     public void validate(Movie movie, List<String> results) {
         Objects.requireNonNull(results);
-        if (movie.title().length() > MAX_TITLE_LENGTH) {
+        if (movie.getTitle().length() > MAX_TITLE_LENGTH) {
             results.add(
                     String.format("Длина названия фильма не должна превышать %d", MAX_TITLE_LENGTH)
             );
         }
 
-        if (movie.title().isBlank()) {
+        if (movie.getTitle().isBlank()) {
             results.add("Название фильма не должно быть пустым");
         }
     }

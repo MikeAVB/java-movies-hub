@@ -9,4 +9,8 @@ public class MovieValidationException extends Exception {
         super(message);
         this.results = validationResults;
     }
+
+    public List<String> getResults() {
+        return results;
+    }
 }

@@ -26,16 +26,17 @@ public class MoviesStore {
         validators.add(new MovieYearValidator());
     }
 
-    public Integer addMovie(Movie movie) throws MovieValidationException {
+    public Movie addMovie(Movie movie) throws MovieValidationException {
         List<String> validationResults = validateMovie(movie);
         if (!validationResults.isEmpty()) {
             throw new MovieValidationException("Ошибка валидации", validationResults);
         }
 
-        Integer nextId = currentId + 1;
+        int nextId = currentId + 1;
+        movie.setId(nextId);
         store.put(nextId, movie);
         currentId = nextId;
-        return nextId;
+        return movie;
     }
 
     public Movie getById(Integer id) throws MovieNotFoundException {
@@ -50,12 +51,20 @@ public class MoviesStore {
         return new ArrayList<>(store.values());
     }
 
+    public List<Movie> filterByYear(int year) {
+        return store.values().stream().filter(movie -> movie.getYear() == year).toList();
+    }
+
     public void removeById(Integer id) throws MovieNotFoundException {
         if (!store.containsKey(id)) {
             throw new MovieNotFoundException("Фильм не найден", id);
         }
 
         store.remove(id);
+    }
+
+    public void clear() {
+        store.clear();
     }
 
     private List<String> validateMovie(Movie movie) {
