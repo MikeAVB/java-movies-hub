@@ -47,6 +47,10 @@ public class MoviesApiTest {
         client.close();
     }
 
+    /*
+        GET
+     */
+
     @Test
     void getMovies_whenEmpty_returnsEmptyArray() throws Exception {
         HttpRequest req = HttpRequest.newBuilder()
@@ -95,6 +99,10 @@ public class MoviesApiTest {
         assertEquals(movie3, movies.get(2));
     }
 
+    /*
+        POST
+     */
+
     @Test
     void postMovie_whenIncorrectContentType_returnError() throws Exception {
         Movie normalMovie = new Movie("Кин-дза-дза!", 1986);
@@ -116,6 +124,7 @@ public class MoviesApiTest {
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(BASE + "/movies"))
+                .setHeader("Content-type", BaseHttpHandler.CT_JSON)
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(normalMovie)))
                 .build();
 
@@ -131,6 +140,24 @@ public class MoviesApiTest {
         normalMovie.setId(1);
         Movie respondedMovie = gson.fromJson(resp.body(), Movie.class);
         assertEquals(normalMovie, respondedMovie, "Фильмы должны быть идентичны");
+    }
+
+    @Test
+    void postMovie_whenIncorrectMovie_returnError() throws Exception {
+        Movie movie = new Movie("", 2100);
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies"))
+                .setHeader("Content-type", BaseHttpHandler.CT_JSON)
+                .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(movie)))
+                .build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+
+        ErrorResponse errorResponse = gson.fromJson(resp.body(), ErrorResponse.class);
+
+        assertEquals("Ошибка валидации", errorResponse.getDescription(), "Должна быть ошибка валидации");
+        assertEquals(2, errorResponse.getDetails().size());
     }
 
 }

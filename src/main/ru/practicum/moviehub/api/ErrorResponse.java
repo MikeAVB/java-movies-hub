@@ -3,8 +3,8 @@ package ru.practicum.moviehub.api;
 import java.util.List;
 
 public class ErrorResponse {
-    private final String description;
-    private final List<String> details;
+    private String description;
+    private List<String> details;
 
     public ErrorResponse(String description, List<String> details) {
         this.description = description;
