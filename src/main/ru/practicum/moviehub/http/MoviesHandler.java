@@ -39,7 +39,7 @@ public class MoviesHandler extends BaseHttpHandler {
             if (method.equalsIgnoreCase("GET")) {
                 if (query == null) {
                     handleGetAllMovies(ex);
-                } else if (query.matches("year=\\d{4}$")){
+                } else if (query.matches("year=\\d{4}$")) {
                     handleGetMoviesByYear(ex, Integer.parseInt(query.split("=")[1]));
                 } else {
                     handleGetIncorrectRequest(ex);
@@ -113,9 +113,9 @@ public class MoviesHandler extends BaseHttpHandler {
                 newMovie = store.addMovie(newMovie);
                 sendJson(ex, 201, gson.toJson(newMovie));
             } else {
-               sendJson(ex, 422, gson.toJson(new ErrorResponse(
-                       "Ошибка валидации", validateResult
-               )));
+                sendJson(ex, 422, gson.toJson(new ErrorResponse(
+                        "Ошибка валидации", validateResult
+                )));
             }
         } catch (JsonSyntaxException exception) {
             sendJson(ex, 400, gson.toJson(new ErrorResponse(
