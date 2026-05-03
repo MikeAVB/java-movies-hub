@@ -277,7 +277,7 @@ public class MoviesApiTest {
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(BASE + "/movies"))
-                .setHeader("Content-type", "application/json")
+                .setHeader("Content-type", "application/json; charset=UTF-8")
                 .POST(HttpRequest.BodyPublishers.ofString(incorrectJson))
                 .build();
 
