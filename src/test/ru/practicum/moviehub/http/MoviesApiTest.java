@@ -65,7 +65,7 @@ public class MoviesApiTest {
 
         String contentTypeHeaderValue =
                 resp.headers().firstValue("Content-Type").orElse("");
-        assertEquals("application/json; charset=UTF-8", contentTypeHeaderValue,
+        assertEquals(BaseHttpHandler.CT_JSON, contentTypeHeaderValue,
                 "Content-Type должен содержать формат данных и кодировку");
 
         String body = resp.body().trim();
@@ -88,7 +88,7 @@ public class MoviesApiTest {
 
         String contentTypeHeaderValue =
                 resp.headers().firstValue("Content-Type").orElse("");
-        assertEquals("application/json; charset=UTF-8", contentTypeHeaderValue,
+        assertEquals(BaseHttpHandler.CT_JSON, contentTypeHeaderValue,
                 "Content-Type должен содержать формат данных и кодировку");
 
         List<Movie> movies = gson.fromJson(resp.body(), new ListOfMoviesTypeToken());
@@ -97,6 +97,22 @@ public class MoviesApiTest {
         assertEquals(movie1, movies.get(0));
         assertEquals(movie2, movies.get(1));
         assertEquals(movie3, movies.get(2));
+    }
+
+    @Test
+    void getMovie_whenCorrectID_returnOK() throws Exception {
+        Movie movie = store.addMovie(new Movie("Фильм 1", 2000));
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies/1"))
+                .GET()
+                .build();
+
+        HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+
+        Movie respondesMovie = gson.fromJson(resp.body(), Movie.class);
+
+        assertEquals(movie, respondesMovie);
     }
 
     /*
@@ -134,7 +150,7 @@ public class MoviesApiTest {
 
         String contentTypeHeaderValue =
                 resp.headers().firstValue("Content-Type").orElse("");
-        assertEquals("application/json; charset=UTF-8", contentTypeHeaderValue,
+        assertEquals(BaseHttpHandler.CT_JSON, contentTypeHeaderValue,
                 "Content-Type должен содержать формат данных и кодировку");
 
         normalMovie.setId(1);
@@ -156,8 +172,7 @@ public class MoviesApiTest {
 
         ErrorResponse errorResponse = gson.fromJson(resp.body(), ErrorResponse.class);
 
-        assertEquals("Ошибка валидации", errorResponse.getDescription(), "Должна быть ошибка валидации");
-        assertEquals(2, errorResponse.getDetails().size());
+        assertEquals("Ошибка валидации", errorResponse.error(), "Должна быть ошибка валидации");
+        assertEquals(2, errorResponse.details().size());
     }
-
 }

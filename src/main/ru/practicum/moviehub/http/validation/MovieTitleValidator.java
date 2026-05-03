@@ -1,4 +1,4 @@
-package ru.practicum.moviehub.store.validation;
+package ru.practicum.moviehub.http.validation;
 
 import ru.practicum.moviehub.model.Movie;
 
@@ -12,8 +12,7 @@ public class MovieTitleValidator implements MovieValidator {
     public void validate(Movie movie, List<String> results) {
         Objects.requireNonNull(results);
         if (movie.getTitle().length() > MAX_TITLE_LENGTH) {
-            results.add(
-                    String.format("Длина названия фильма не должна превышать %d", MAX_TITLE_LENGTH)
+            results.add(String.format("Длина названия фильма не должна превышать %d", MAX_TITLE_LENGTH)
             );
         }
 

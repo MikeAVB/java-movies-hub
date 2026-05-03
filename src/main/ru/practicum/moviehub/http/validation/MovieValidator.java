@@ -1,4 +1,4 @@
-package ru.practicum.moviehub.store.validation;
+package ru.practicum.moviehub.http.validation;
 
 import ru.practicum.moviehub.model.Movie;
 
