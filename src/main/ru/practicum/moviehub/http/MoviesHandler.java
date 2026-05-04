@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static ru.practicum.moviehub.http.validation.MovieYearValidator.*;
+
 public class MoviesHandler extends BaseHttpHandler {
     private final MoviesStore store;
     private final List<MovieValidator> validators;
@@ -31,12 +33,24 @@ public class MoviesHandler extends BaseHttpHandler {
 
     @Override
     public void handle(HttpExchange ex) throws IOException {
-        String method = ex.getRequestMethod();
         String path = ex.getRequestURI().getPath();
         String query = ex.getRequestURI().getQuery();
 
         if (path.matches("/movies$")) {
-            if (method.equalsIgnoreCase("GET")) {
+            handleMovies(ex, query);
+        } else if (path.matches("/movies/\\d+$")) {
+            int id = Integer.parseInt(path.split("/")[2]);
+            handleMovie(ex, id);
+        } else {
+            handleGetIncorrectRequest(ex);
+        }
+    }
+
+    public void handleMovies(HttpExchange ex, String query) throws IOException {
+        String method = ex.getRequestMethod();
+
+        switch (method) {
+            case "GET" -> {
                 if (query == null) {
                     handleGetAllMovies(ex);
                 } else if (query.matches("year=\\d{4}$")) {
@@ -44,27 +58,30 @@ public class MoviesHandler extends BaseHttpHandler {
                 } else {
                     handleGetIncorrectRequest(ex);
                 }
-            } else if (method.equalsIgnoreCase("POST")) {
-                handlePostNewMovie(ex);
-            } else {
-                sendNotAllowed(ex);
             }
-        } else if (path.matches("/movies/\\d+$")) {
-            int id = Integer.parseInt(path.split("/")[2]);
-            if (method.equalsIgnoreCase("GET")) {
-                handleGetMovieById(ex, id);
-            } else if (method.equalsIgnoreCase("DELETE")) {
-                handleDeleteMovieById(ex, id);
-            } else {
-                sendNotAllowed(ex);
-            }
-        } else {
-            handleGetIncorrectRequest(ex);
+            case "POST" -> handlePostNewMovie(ex);
+            default -> sendNotAllowed(ex);
+        }
+    }
+
+    public void handleMovie(HttpExchange ex, int id) throws IOException {
+        String method = ex.getRequestMethod();
+
+        switch (method) {
+            case "GET" -> handleGetMovieById(ex, id);
+            case "DELETE" -> handleDeleteMovieById(ex, id);
+            default -> sendNotAllowed(ex);
         }
     }
 
     private void handleGetMoviesByYear(HttpExchange ex, int year) throws IOException {
-        sendJson(ex, 200, gson.toJson(store.filterByYear(year)));
+        if (year < MIN_RELEASE_YEAR || year > MAX_RELEASE_YEAR) {
+            sendJson(ex, 400, gson.toJson(new ErrorResponse(
+                    String.format("Год выпуска фильма должен быть в промежутке [%d - %d]",
+                            MIN_RELEASE_YEAR, MAX_RELEASE_YEAR), Collections.emptyList())));
+        } else {
+            sendJson(ex, 200, gson.toJson(store.filterByYear(year)));
+        }
     }
 
     private void handleGetAllMovies(HttpExchange ex) throws IOException {

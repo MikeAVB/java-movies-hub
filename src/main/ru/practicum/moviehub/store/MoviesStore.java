@@ -20,11 +20,7 @@ public class MoviesStore {
     }
 
     public Optional<Movie> getById(Integer id) {
-        if (store.containsKey(id)) {
-            return Optional.of(store.get(id));
-        } else {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(store.get(id));
     }
 
     public List<Movie> getAllMovies() {
@@ -38,12 +34,7 @@ public class MoviesStore {
     }
 
     public boolean removeById(Integer id) {
-        if (store.containsKey(id)) {
-            store.remove(id);
-            return true;
-        } else {
-            return false;
-        }
+        return store.remove(id) != null;
     }
 
     public void clear() {
